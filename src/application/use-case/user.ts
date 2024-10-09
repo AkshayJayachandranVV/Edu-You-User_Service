@@ -334,7 +334,7 @@ export class UserService {
           console.log(user.isBlocked);
           if (user.isBlocked) {
               console.log('isblocked----------------if')
-              return { success: false, message:"User is Blocked", user_data: user };
+              return { success: false, message:"User is Blocked", user_data: user,role: "user",};
           } else {
               console.log('isblocked----------------else')
               return { success: true, message: 'Logged in successful', user_data: user };
@@ -357,35 +357,35 @@ async editProfile(data: profile): Promise<any> {
         let profile_pic_url: string = '';
 
         // Ensure profile_picture is a file object with a buffer
-        if (data.image && typeof data.image !== 'string' && 'buffer' in data.image) {
-            const buffer = Buffer.isBuffer(data.image.buffer) 
-                ? data.image.buffer 
-                : Buffer.from(data.image.buffer);
+        if (data.data.profile_picture && typeof data.data.profile_picture !== 'string' && 'buffer' in data.data.profile_picture) {
+            const buffer = Buffer.isBuffer(data.data.profile_picture.buffer) 
+                ? data.data.profile_picture.buffer 
+                : Buffer.from(data.data.profile_picture.buffer);
 
             // Upload the image buffer to S3 and get the key
-            const key = await uploadFileToS3(buffer, data.image.originalname);
-            data.image = key;  // Update the image field with the S3 key
+            // const key = await uploadFileToS3(buffer, data.image.originalname);
+            // data.image = key;  // Update the image field with the S3 key
 
             // Fetch the URL of the uploaded image from S3 (with expiry time)
-            profile_pic_url = await fetchFileFromS3(key, 604800); // URL valid for 7 days
+            // profile_pic_url = await fetchFileFromS3(key, 604800);
         }
 
         console.log(profile_pic_url, 'Profile picture URL after upload');
 
         // Extract relevant fields from `data.data`
-        const { username, email, phone, about } = data.data;
+        const { username, email, phone, about,profile_picture} = data.data;
 
-        console.log(username, email, phone, about);
+        console.log(username, email, phone, about,profile_picture);
 
         // Update the user profile with the provided data (image is now the S3 key)
-        let user = await this.userRepo.editProfile({ username, email, phone, about, image: data.image });
+        let user = await this.userRepo.editProfile({ username, email, phone, about, image: profile_picture });
 
         console.log("Check value updated or not", user);
 
         // Update the profile_picture field with the new profile_pic_url before sending to frontend
-        const updatedUser = { ...user, profile_picture: profile_pic_url };
+        // const updatedUser = { ...user, profile_picture: profile_pic_url };
 
-        return updatedUser; // Send updated user data with the profile_picture URL
+        return user; // Send updated user data with the profile_picture URL
 
     } catch (error) {
         if (error instanceof Error) {
@@ -406,7 +406,7 @@ async totalStudents(data: any): Promise<IUser[]| null> {
 
   } catch (error) {
       if (error instanceof Error) {
-          throw new Error(`Error editing profile: ${error.message}`);
+          throw new Error(`Error editing profile: ${error.message}`);  
       }
       throw error;
   }

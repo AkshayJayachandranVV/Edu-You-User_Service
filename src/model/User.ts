@@ -16,7 +16,10 @@ const userSchema :Schema = new Schema({
     },
     phone:{
         type:String,
-        required:true
+    },
+    profile_picture:{
+        type:String,
+        required:false
     },
     password:{
         type:String,

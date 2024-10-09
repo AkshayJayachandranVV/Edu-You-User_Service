@@ -167,7 +167,7 @@ export class UserRepository implements IUserRepository {
 
 async editProfile(user: userData) : Promise<IUser| null> {
     try {
-        console.log('edit profile  in userrepository reached')
+        console.log('edit profile  in userrepository reached',user)
 
         const {username,email,phone,about, image} = user;
       

@@ -13,13 +13,13 @@ export interface IUser {
   }
 
 
-  export interface profile {
-    image?: { buffer: Buffer; originalname: string } | string;
+  export interface profile {   
     data: { // Add this block
         username: string;
         email: string;
         phone: string;
         about?: string;
+        profile_picture?: { buffer: Buffer; originalname: string } | string;
     };
     created_At?: Date;
 }
