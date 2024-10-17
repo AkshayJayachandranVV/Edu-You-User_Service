@@ -19,8 +19,8 @@ const loginUser = (call:any, callback: any) => {
 
 
 
-    const response: any = { true }; // Prepare response
-    callback(null, response); // Send the response
+     // Prepare response
+    callback(null, true); // Send the response
 };
 
 const userProtoDescription = grpc.loadPackageDefinition(userPackageDefinition) as any;

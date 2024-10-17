@@ -7,10 +7,9 @@ service UserService {
 }
 
 message LoginUserRequest {
-    string username = 1; // Add username
-    string password = 2; // Add password
 }
 
 message LoginUserResponse {
-    bool success = 1; // Indicate if login was successful
+    bool success = 1;
 }
+
