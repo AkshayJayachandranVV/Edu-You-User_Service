@@ -14,14 +14,12 @@ const userPackageDefinition = protoLoader.loadSync(USER_PROTO_PATH, {
     oneofs: true,
 });
 
-const loginUser = (call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>) => {
-    const { username, password } = call.request; // Get data from the request
-    console.log(`Login attempt for user: ${username}`);
+const loginUser = (call:any, callback: any) => {
+    console.log("Login attempt for user:");
 
-    // Simulate a login check (this should be replaced with your actual logic)
-    const success = username === 'admin' && password === 'password'; // Example condition
 
-    const response: any = { success }; // Prepare response
+
+    const response: any = { true }; // Prepare response
     callback(null, response); // Send the response
 };
 
