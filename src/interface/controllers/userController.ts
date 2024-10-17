@@ -1,5 +1,8 @@
 import {UserService} from "../../application/use-case/user"
-import { LoginUser,tempId, Email } from "../../domain/entities/IUser";
+import { LoginUser,tempId, Email,userData } from "../../domain/entities/IUser";
+import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
+import bcrypt from 'bcrypt';
+
 
 
 class UserController {
@@ -33,17 +36,15 @@ class UserController {
         }
     }
 
-    async loginUser(data: LoginUser){
-        try{
-            console.log(data, "login user");
-
-            const result = await this.userService.loginUser(data)
-
-            return result
-        }catch(error){
-            console.log("error in login user usercontroller", error);
+    async loginUser(call: any, callback: any) {
+        try {
+            console.log("reached-------------------------------------------")
+            const { email, password } = call.request;
+            const result = await this.userService.loginUser(email, password);
+            callback(null, result);
+        } catch (error) {
+            console.log(error,"in grpc") 
         }
-
     }
 
 
@@ -153,6 +154,20 @@ class UserController {
 
     }
 
+
+    async addMyCourse(data: any){
+        try{
+            console.log(data, "add course my course");
+
+            const result = await this.userService.addMyCourse(data)
+
+            return result
+        }catch(error){
+            console.log("error in login user usercontroller", error);
+        }
+
+    }
+
 }
 
 
@@ -160,3 +175,4 @@ class UserController {
 
 
 export const userController = new UserController()
+

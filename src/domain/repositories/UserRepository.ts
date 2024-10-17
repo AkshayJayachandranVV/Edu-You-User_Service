@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { User } from "../../model/User";
 import {TemporaryUser} from '../../model/TempUser'
 import { bool } from 'aws-sdk/clients/redshiftdata';
+import { AnyARecord } from 'dns';
 
 export class UserRepository implements IUserRepository {
     async findByEmail(email: string): Promise<IUser | null> {
@@ -244,6 +245,36 @@ async isBlocked(email: string): Promise<{ success: boolean; message: string }> {
         return { success: false, message: `Error updating user status: ${err.message}` };
     }
 }
+
+
+async addMyCourse(data:any): Promise<IUser | null> {
+    try {
+        console.log('Total students in user repository reached');
+
+        const { userId, courseId } = data;
+
+        // Create the course object to be added, with courseId and current date
+        const courseToAdd = {
+            courseId,
+            date: new Date(), // Automatically sets the current date
+        };
+
+        // Use updateOne with the $push operator to add the course to the myCourse array
+        let addMycourse = await User.updateOne(
+            { _id: userId }, // Find user by userId
+            { $push: { myCourse: courseToAdd } } // Push new course object into myCourse array
+        );
+
+        console.log('Course added:', addMycourse);
+
+        return addMycourse.modifiedCount > 0 ? await User.findById(userId) : null;
+    } catch (error) {
+        console.log("Error in save userRepo");
+        const err = error as Error;
+        throw new Error(`Error adding course to user: ${err.message}`);
+    }
+}
+
 
 
     

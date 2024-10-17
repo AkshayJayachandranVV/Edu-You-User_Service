@@ -8,6 +8,8 @@ import config from "../../infrastructure/config/config";
 import { fetchFileFromS3, uploadFileToS3 } from "../../infrastructure/s3/s3Action";
 import bcrypt from "bcryptjs";
 import mongoose, { Document } from "mongoose";
+import { handleUnaryCall } from "@grpc/grpc-js";
+import * as grpc from '@grpc/grpc-js'; 
 
 export class UserService {
   private userRepo: UserRepository;
@@ -102,59 +104,57 @@ export class UserService {
     }
   }
 
-  async loginUser(data: LoginUser): Promise<{ success: boolean; message: string; userData?: userData; role?: string }> {
+  
+  loginUser = async (call: any, callback: any) => {
     try {
-      const { email, password } = data;
-  
-      const userData = await this.userRepo.checkUser(email, password);
-  
-      console.log(userData, "data changed code to userepo to testcase");
-  
-      if (!userData) {
-        return { success: false, message: "Email incorrect" };
-      }
+        const { email, password } = call.request; // Get the email and password from the request
 
+        // Check if user exists
+        const userData: any = await this.userRepo.checkUser(email, password);
+        console.log(userData, "data retrieved from userRepo");
 
-      if(userData.isBlocked){
-        return { success: false, message: "User is Blocked" };
-      }
-  
-      // Extract the stored password from userData
-      const storedPassword = userData.password;
-  
-      console.log(storedPassword, "stored password in userData.ts im userapplication");
-  
-      if (!storedPassword) {
-        return { success: false, message: "Password not found for user" };
-      }
-  
-      const isPassword = await bcrypt.compare(password, storedPassword);
-  
-      console.log(isPassword);
-  
-      if (!isPassword) {
-        console.log("password unmatched");
-        return { success: false, message: "Incorrect Password" };
-      } else {
-        console.log("successfully logged in", userData);
-  
-        // Remove the password from userData before returning
-        const { password, ...userDataWithoutPassword } = userData;
-  
-        return {
-          success: true,
-          message: "Login successful",
-          userData: userDataWithoutPassword, // Send user data without password
-          role: "user",
-        };
-      }
+        if (!userData) {
+            return callback(null, { success: false, message: "Email incorrect" });
+        }
+
+        if (userData.isBlocked) {
+            return callback(null, { success: false, message: "User is blocked" });
+        }
+
+        const storedPassword: string | undefined = userData.password; // Explicitly define type
+        console.log(storedPassword, "stored password in userData");
+
+        if (!storedPassword) {
+            return callback(null, { success: false, message: "Password not found for user" });
+        }
+
+        // Compare the provided password with the stored hash
+        const isPasswordMatch = await bcrypt.compare(password, storedPassword);
+        if (!isPasswordMatch) {
+            console.log("Password unmatched");
+            return callback(null, { success: false, message: "Incorrect Password" });
+        }
+
+        console.log("Successfully logged in", userData);
+
+        // Exclude password from the response
+        const { password: _, ...userDataWithoutPassword } = userData; 
+
+        return callback(null, {
+            success: true,
+            message: "Login successful",
+            userId: userDataWithoutPassword.id, // Ensure you're sending the userId as per proto
+        });
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Error logging in user: ${error.message}`);
-      }
-      throw error;
+        console.error("Error in loginUser:", error);
+
+        return callback({
+            code: grpc.status.INTERNAL,
+            details: `Error logging in user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        });
     }
-  }
+};
+
   
 
   async resendOtp(data: tempId): Promise<{ success: boolean; forgotPass?: boolean, message: string; userData?: IUser , id?: mongoose.Types.ObjectId  }> {
@@ -430,6 +430,23 @@ async isBlocked(data: Email): Promise<any> {
 }
 
 
+
+async addMyCourse(data: any): Promise<any> {
+  try {
+      console.log(data, "data in my course add ");
+      
+      const mycourse = await this.userRepo.addMyCourse(data);
+      return mycourse;
+
+  } catch (error) {
+      if (error instanceof Error) {
+          throw new Error(`Error editing profile: ${error.message}`);  
+      }
+      throw error;
+  }
+}
+
+
  }
 
 
@@ -437,6 +454,6 @@ async isBlocked(data: Email): Promise<any> {
 
   
 
-  
+ 
 
 

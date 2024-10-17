@@ -16,11 +16,11 @@ export default class MessageHandlers{
                 response = await userController.verifyOtp(data)
                 console.log("data reached inside message handler.ts",response);
                 break;
-            case 'login_user' :
-                console.log('Handling operation',operations,data);
-                response = await userController.loginUser(data)
-                console.log("data reached ",response);
-                break;
+            // case 'login_user' :
+            //     console.log('Handling operation',operations,data);
+            //     response = await userController.loginUser(data)
+            //     console.log("data reached ",response);
+            //     break;
             case 'resend_otp' :
                 console.log('Handling operation',operations,data)
                 response = await userController.resendOtp(data)
@@ -59,6 +59,11 @@ export default class MessageHandlers{
             case 'admin-isBlocked' :
                 console.log('Handling operation',operations,data)
                 response = await userController.isBlocked(data)
+                console.log("data reached in adminisblock ",response);
+                break;
+            case 'update-my-course' :
+                console.log('Handling operation',operations,data)
+                response = await userController.addMyCourse(data)
                 console.log("data reached in adminisblock ",response);
                 break;
         }
