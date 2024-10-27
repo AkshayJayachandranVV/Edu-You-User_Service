@@ -3,7 +3,6 @@ import config from '../config/config';
 import RabbitMQClient from '../rabbitMQ/client';
 import { databaseConnection } from '../database/mongodb';
 import { startGrpcServer } from '../grpc/client/grpcServer';
-import * as grpc from '@grpc/grpc-js';
 
 const app = express();
 app.use(express.json());
@@ -13,11 +12,12 @@ const startServer = async () => {
         console.log("USER SERVER STARTING ------");
         await databaseConnection();
 
-        // RabbitMQ initialization
-        RabbitMQClient.initialize();
-
+        
         // Start gRPC server
         startGrpcServer();
+
+        // RabbitMQ initialization
+        RabbitMQClient.initialize();
 
         const port = config.port;
 

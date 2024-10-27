@@ -276,7 +276,100 @@ async addMyCourse(data:any): Promise<IUser | null> {
 }
 
 
+async userMyCourses(data:any) : Promise<mongoose.Schema.Types.ObjectId[] | null> {
+    try {
+        console.log(' my courses in userrepository reached')
+
+        const {userId} = data
+        const userCourses = await User.findOne({ _id: userId }, 'myCourse.courseId').exec();
+
+        if (!userCourses) {
+            console.log("No courses found for this user.");
+            return null;
+          }
+      
+          // Extract all courseIds from the myCourse field
+          const courseIds = userCourses.myCourse.map(course => course.courseId);
+          console.log("Course IDs:", courseIds);
+      
+          return courseIds;
+    } catch (error) {
+        console.log("error in save userRepo")
+        const err = error as Error;
+        throw new Error(`Error finding temporary user by tempId ${err.message}`);
+        
+    }
+}
+
+
+async chatUsers(data: any) {
+    try {
+      const messagesWithUserInfo = await Promise.all(
+        data.messages.map(async (message: any) => {
+          const user = await User.findById(message.userId).select('username profile_picture');
+          if (user) {
+            
+            return {
+              ...message,
+              username: user.username, // Attach username
+              profile_picture: user.profile_picture // Attach profile picture
+            };
+          } else {
+            return {
+              ...message,
+              username: 'Unknown User', // Fallback if user not found
+              profile_picture: null // Fallback profile picture
+            };
+          }
+        })
+      );
+  
+      console.log(messagesWithUserInfo, "------------messages with user info");
+  
+      return messagesWithUserInfo; // Return the messages with user info
+    } catch (error) { 
+      console.log("Error fetching user data for chat:", error);
+      const err = error as Error;
+      throw new Error(`Error fetching user data`);
+    }
+  }
+
+
+
+  async tutorStudentsData(studentIds: string[]): Promise<IUser[] | null> {
+    try {
+        // Check if studentIds is an array, if not throw an error
+        if (!Array.isArray(studentIds)) {
+            console.error('Invalid input: studentIds should be an array', studentIds);
+            throw new Error('Invalid input: studentIds should be an array');
+        }
+
+        console.log('Fetching details for specific students in user repository', studentIds);
+
+        // Convert strings to ObjectIds
+        const objectIdArray = studentIds.map((id: string) => new mongoose.Types.ObjectId(id)); // Specify the type here
+
+        // Query using array of IDs directly
+        const studentsData = await User.find(
+            { _id: { $in: objectIdArray } },
+            { _id: 1, username: 1, email: 1, phone: 1, createdAt: 1 }
+        ).exec();
+
+        console.log(studentsData);
+        return studentsData;
+    } catch (error) {
+        console.log("Error in fetching students from user repository");
+        const err = error as Error;
+        throw new Error(`Error finding students by IDs: ${err.message}`);
+    }
+}
+
 
     
 }
+
+
+
+
+
 

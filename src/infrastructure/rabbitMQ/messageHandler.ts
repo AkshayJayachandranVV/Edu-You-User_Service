@@ -6,16 +6,16 @@ export default class MessageHandlers{
      static async handle(operations:string,data : any, correlationId:string,replyTo:string){
         let response
         switch(operations){
-            case 'register_user':
-                console.log('Handling operation',operations,data);
-                response = await userController.registerUser(data)
-                console.log("data reached inside message handler.ts",response);
-                break;
-            case 'verify_otp' : 
-                console.log('Handling operation',operations,data)
-                response = await userController.verifyOtp(data)
-                console.log("data reached inside message handler.ts",response);
-                break;
+            // case 'register_user':
+            //     console.log('Handling operation',operations,data);
+            //     response = await userController.registerUser(data)
+            //     console.log("data reached inside message handler.ts",response);
+            //     break;
+            // case 'verify_otp' : 
+            //     console.log('Handling operation',operations,data)
+            //     response = await userController.verifyOtp(data)
+            //     console.log("data reached inside message handler.ts",response);
+            //     break;
             // case 'login_user' :
             //     console.log('Handling operation',operations,data);
             //     response = await userController.loginUser(data)
@@ -41,11 +41,11 @@ export default class MessageHandlers{
                 response = await userController.resetPassword(data)
                 console.log("data reached ",response);
                 break;
-            case 'google-login_user' :
-                console.log('Handling operation',operations,data)
-                response = await userController.googleLoginUser(data)
-                console.log("data reached ",response);
-                break;
+            // case 'google-login_user' :
+            //     console.log('Handling operation',operations,data)
+            //     response = await userController.googleLoginUser(data)
+            //     console.log("data reached ",response);
+            //     break;
             case 'edit_profile' :
                 console.log('Handling operation',operations,data)
                 response = await userController.editProfile(data)
@@ -64,6 +64,21 @@ export default class MessageHandlers{
             case 'update-my-course' :
                 console.log('Handling operation',operations,data)
                 response = await userController.addMyCourse(data)
+                console.log("data reached in adminisblock ",response);
+                break;
+            case 'user-my-course' :
+                console.log('Handling operation',operations,data)
+                response = await userController.userMyCourses(data)
+                console.log("data reached in adminisblock ",response);
+                break;
+            case 'chat-user-data' :
+                console.log('Handling operation',operations,data)
+                response = await userController.chatUsers(data)
+                console.log("data reached in adminisblock ",response);
+                break;
+            case 'tutor-user-details' :
+                console.log('Handling operation',operations,data)
+                response = await userController.tutorStudentsData(data)
                 console.log("data reached in adminisblock ",response);
                 break;
         }
