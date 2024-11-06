@@ -1,5 +1,5 @@
 import { UserRepository } from "../../domain/repositories/UserRepository";
-import { IUser, LoginUser, tempId,userMinData,userData,profile, Email } from "../../domain/entities/IUser";
+import { IUser, UserIdList, tempId,userMinData,userData,profile, Email, senderId } from "../../domain/entities/IUser";
 import { generateOtp } from "../../utils/generateOtp";
 import { sendOtpEmail } from "../../utils/sendEmail";
 import { TemporaryUser } from "../../model/TempUser";
@@ -618,14 +618,72 @@ async tutorStudentsData(data: any): Promise<any> {
   }
 }
 
+
+async userMyCourse(data: {userId:string}): Promise<any> {
+  try {
+      console.log(data, "data in my course add ");
+      const {userId} = data
+      
+      const studentsData = await this.userRepo.userMyCourse(userId);
+      return {success:true,courses:studentsData};
+
+  } catch (error) {
+      if (error instanceof Error) {
+          throw new Error(`Error editing profile: ${error.message}`);  
+      }
+      throw error;
+  }
+}
+
+
+
+async chatSenderData(data:senderId): Promise<any> {
+  try {
+      console.log(data, "data in my course add ");
+      const {senderId} = data
+      
+      const studentsData = await this.userRepo.chatSenderData(senderId);
+      return {success:true,userData:studentsData};
+
+  } catch (error) {
+      if (error instanceof Error) {
+          throw new Error(`Error editing profile: ${error.message}`);  
+      }
+      throw error;
+  }
+}
+
+
+
+
+async fetchGroupMembers(data:UserIdList): Promise<any> {
+  try {
+      console.log(data, "data in my course add ");
+      
+      const studentsData = await this.userRepo.fetchGroupMembers(data);
+      return {success:true,userData:studentsData};
+
+  } catch (error) {
+      if (error instanceof Error) {
+          throw new Error(`Error editing profile: ${error.message}`);  
+      }
+      throw error;
+  }
+}
+
+
+
  }
 
 
+
+ 
+
  
  
  
 
-
+ 
  
 
 

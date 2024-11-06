@@ -78,3 +78,16 @@ export interface TemporaryUserData extends Document {
 export interface Email {
     email:string
 }
+
+
+export interface senderId {
+    senderId:string
+}
+
+
+interface UserId {
+    userId: string;
+  }
+  
+export type UserIdList = UserId[];
+  

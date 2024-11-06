@@ -1,5 +1,5 @@
 import {UserService} from "../../application/use-case/user"
-import { LoginUser,tempId, Email,userData } from "../../domain/entities/IUser";
+import { senderId,tempId, Email,UserIdList } from "../../domain/entities/IUser";
 import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
 import bcrypt from 'bcrypt';
 import * as grpc from '@grpc/grpc-js';
@@ -297,6 +297,49 @@ class UserController {
             console.log(data, "add course my course");
 
             const result = await this.userService.tutorStudentsData(data)
+
+            return result
+        }catch(error){
+            console.log("error in login user usercontroller", error);
+        }
+
+    }
+
+
+
+    async userMyCourse(data: any){
+        try{
+            console.log(data, "add course my course");
+
+            const result = await this.userService.userMyCourse(data)
+
+            return result
+        }catch(error){
+            console.log("error in login user usercontroller", error);
+        }
+
+    }
+
+
+    async chatSenderData(data: senderId){
+        try{
+            console.log(data, "add course my course");
+
+            const result = await this.userService.chatSenderData(data)
+
+            return result
+        }catch(error){
+            console.log("error in login user usercontroller", error);
+        }
+
+    }
+
+
+    async fetchGroupMembers(data: UserIdList){
+        try{
+            console.log(data, "add course my course");
+
+            const result = await this.userService.fetchGroupMembers(data)
 
             return result
         }catch(error){

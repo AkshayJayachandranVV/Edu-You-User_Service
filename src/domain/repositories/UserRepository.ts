@@ -1,9 +1,9 @@
 import {IUserRepository} from './IUserRepository';
-import {IUser, userData} from '../entities/IUser'
+import {IUser,UserIdList, userData} from '../entities/IUser'
 import {ITemporaryUser,TemporaryUserData} from '../entities/IUser'
 import mongoose from "mongoose";
 import bcrypt from 'bcryptjs';
-import { User } from "../../model/User";
+import { User,IUserDocument } from "../../model/User";
 import {TemporaryUser} from '../../model/TempUser'
 import { bool } from 'aws-sdk/clients/redshiftdata';
 import { AnyARecord } from 'dns';
@@ -363,6 +363,82 @@ async chatUsers(data: any) {
         throw new Error(`Error finding students by IDs: ${err.message}`);
     }
 }
+
+
+async userMyCourse(userId: string): Promise<{ courseId: string }[] | null> {
+    try {
+        console.log('Fetching courses for user:', userId);
+
+        // Fetch user with myCourse details
+        const userData = await User.findById(userId).select('myCourse.courseId').exec();
+
+        // Check if user exists
+        if (!userData) {
+            console.log('User not found');
+            return null;
+        }
+
+        // Extract courseId from myCourse and create an array of objects
+        const courseIds = userData.myCourse.map(course => ({
+            courseId: course.courseId.toString() // Create object with courseId as key
+        }));
+
+        console.log('Fetched courseIds:', courseIds);
+
+        // Return the array of objects with courseId
+        return courseIds; // This will return an array of objects with courseId
+    } catch (error) {
+        console.log("Error in userMyCourse:", error);
+        throw new Error(`Error fetching courses for user ${userId}`);
+    }
+}
+
+
+
+async  chatSenderData(senderId: string): Promise<IUser | null> {
+    try {
+      // Fetch the user by ID and only select `username` and `profile_picture`
+      const user = await User.findById(senderId).select("username profile_picture");
+
+      console.log(user,"000000000000000000000000000000")
+  
+      // Return the found user or null if not found
+      return user;
+    } catch (error) {
+      console.log("Error in retrieving user in chatSenderData");
+      const err = error as Error;
+      throw new Error(`Error finding user by senderId: ${err.message}`);
+    }
+  }
+
+
+
+
+  async  fetchGroupMembers(data: UserIdList): Promise<{ _id: string; username: string }[]> {
+    try {
+      // Extract userIds from the input data
+
+      console.log("testing testing")
+
+      const userIds = data.map((item) => item.userId);
+  
+      // Fetch users from the database, selecting only _id and username
+      const users = await User.find({ _id: { $in: userIds } })
+        .select('_id username') // Select only _id and username fields
+        .exec();
+  
+      // Ensure TypeScript knows the type of _id and username
+      return users.map((user: IUserDocument) => ({
+        _id: (user._id as mongoose.Schema.Types.ObjectId).toString(), // Convert _id to string
+        username: user.username,
+      }));
+    } catch (error) {
+      console.log('Error in retrieving users in fetchGroupMembers');
+      const err = error as Error;
+      throw new Error(`Error fetching group members: ${err.message}`);
+    }
+  }
+
 
 
     

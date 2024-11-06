@@ -81,6 +81,21 @@ export default class MessageHandlers{
                 response = await userController.tutorStudentsData(data)
                 console.log("data reached in adminisblock ",response);
                 break;
+            case 'user-myCourse' :
+                console.log('Handling operation',operations,data)
+                response = await userController.userMyCourse(data)
+                console.log("data reached in adminisblock ",response);
+                break;
+            case 'fetch-sender-data' :
+                console.log('Handling operation',operations,data)
+                response = await userController.chatSenderData(data)
+                console.log("data reached in adminisblock ",response);
+                break;
+            case 'fetch-group-users' :
+                console.log('Handling operation',operations,data)
+                response = await userController.fetchGroupMembers(data)
+                console.log("data reached in adminisblock ",response);
+                break;
         }
 
         await RabbitMQClient.produce(response,correlationId,replyTo)
