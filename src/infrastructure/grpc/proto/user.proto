@@ -7,9 +7,22 @@ service UserService {
     rpc register (RegisterUserRequest) returns (RegisterUserResponse);
     rpc verifyOtp (VerifyOtpUserRequest) returns (VerifyOtpUserResponse);
     rpc googleLogin (GoogleLoginUserRequest) returns (GoogleLoginUserResponse);
+    rpc myCourse (MyCourseRequest) returns (MyCoursesResponse);
 }
 
-// Shared messages
+message MyCourseRequest {
+   string userId = 1;  
+}
+
+message MyCourse {
+  string courseId = 1; 
+}
+
+message MyCoursesResponse {
+  bool success = 1;          
+  repeated MyCourse courses = 2; // List of courses
+}
+
 message UserData {
     string id = 1;
     string username = 2;
@@ -28,50 +41,50 @@ message Course {
     string date = 2;
 }
 
-// Request and response for Google login
 message GoogleLoginUserRequest {
     string email = 1;
     string fullname = 2;
 }
+
 message GoogleLoginUserResponse {
     bool success = 1;
     string message = 2;
     UserData user_data = 3;
 }
 
-// Request and response for OTP verification
 message VerifyOtpUserRequest {
     string otp = 1;
     string id = 2; // The ID of the temporary user
 }
+
 message VerifyOtpUserResponse {
     string message = 1;
     bool success = 2;
     UserData user_data = 3;
 }
 
-// Request and response for user registration
 message RegisterUserRequest {
-    string username = 1;  // Username of the user
-    string email = 2;     // Email address of the user
-    string password = 3;  // Password of the user
-}
-message RegisterUserResponse {
-    string message = 1;     // Message to indicate the next step
-    bool success = 2;       // Indicates if the registration was successful
-    bool forgotPass = 3;    // Indicates if a password reset is required
-    UserData userData = 4;  // Contains user data if registration is successful
-    string tempId = 5;      // Temporary ID for the user session, if needed
+    string username = 1;
+    string email = 2;
+    string password = 3;
 }
 
-// Request and response for user login
+message RegisterUserResponse {
+    string message = 1;
+    bool success = 2;
+    bool forgotPass = 3;
+    UserData userData = 4;
+    string tempId = 5;
+}
+
 message LoginUserRequest {
     string email = 1;
     string password = 2;
 }
+
 message LoginUserResponse {
     bool success = 1;       
     string message = 2;     
     string role = 3;        
-    UserData userData = 4;  // Contains user data after successful login
+    UserData userData = 4;  
 }

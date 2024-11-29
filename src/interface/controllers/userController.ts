@@ -1,5 +1,5 @@
 import {UserService} from "../../application/use-case/user"
-import { senderId,tempId, Email,UserIdList } from "../../domain/entities/IUser";
+import { senderId,tempId, Email,UserIdList,MyCourseRequest,MyCoursesResponse} from "../../domain/entities/IUser";
 import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
 import bcrypt from 'bcrypt';
 import * as grpc from '@grpc/grpc-js';
@@ -307,18 +307,29 @@ class UserController {
 
 
 
-    async userMyCourse(data: any){
-        try{
-            console.log(data, "add course my course");
-
-            const result = await this.userService.userMyCourse(data)
-
-            return result
-        }catch(error){
-            console.log("error in login user usercontroller", error);
+    async userMyCourse(data:any ): Promise<any> {
+        try {
+          const { userId } = data;
+          console.log("Received userId:", userId);
+    
+          // Example: Fetch courses for the user
+          const result = await this.userService.userMyCourse(userId);
+    
+          console.log("before send ",result)
+          const response: MyCoursesResponse = {
+            success: true,
+            courses: result.courses.map((course: any) => ({
+              courseId: course.courseId, // Adjust this mapping to your data structure
+            })),
+          };
+    
+          // Send success response
+          return response
+        } catch (error) {
+          console.error("Error in userMyCourse:", error);
         }
+      }
 
-    }
 
 
     async chatSenderData(data: senderId){
@@ -340,6 +351,34 @@ class UserController {
             console.log(data, "add course my course");
 
             const result = await this.userService.fetchGroupMembers(data)
+
+            return result
+        }catch(error){
+            console.log("error in login user usercontroller", error);
+        }
+
+    }
+
+
+    async payoutUsers(data: any){
+        try{
+            console.log(data, "add course my course");
+
+            const result = await this.userService.payoutUsers(data)
+
+            return result
+        }catch(error){
+            console.log("error in login user usercontroller", error);
+        }
+
+    }
+
+
+    async totalUsers(){
+        try{
+            console.log( "add course my course");
+
+            const result = await this.userService.totalUsers()
 
             return result
         }catch(error){

@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 import mongoose, { Document } from "mongoose";
 import { handleUnaryCall } from "@grpc/grpc-js";
 import * as grpc from '@grpc/grpc-js'; 
+import { AnyAaaaRecord } from "dns";
 
 export class UserService {
   private userRepo: UserRepository;
@@ -519,11 +520,11 @@ async editProfile(data: profile): Promise<any> {
 
 
 
-async totalStudents(data: any): Promise<IUser[]| null> {
+async totalStudents(data: any): Promise<any> {
   try {
       console.log(data, "data in students list");
       
-      const students = await this.userRepo.totalStudents();
+      const students = await this.userRepo.totalStudents(data);
       return students;
 
   } catch (error) {
@@ -619,10 +620,9 @@ async tutorStudentsData(data: any): Promise<any> {
 }
 
 
-async userMyCourse(data: {userId:string}): Promise<any> {
+async userMyCourse(userId:string): Promise<any> {
   try {
-      console.log(data, "data in my course add ");
-      const {userId} = data
+      console.log(userId, "data in my course add ");
       
       const studentsData = await this.userRepo.userMyCourse(userId);
       return {success:true,courses:studentsData};
@@ -671,6 +671,37 @@ async fetchGroupMembers(data:UserIdList): Promise<any> {
   }
 }
 
+
+async payoutUsers(data:AnyAaaaRecord): Promise<any> {
+  try {
+      console.log(data, "data in my course add ");
+      
+      const studentsData = await this.userRepo.payoutUsers(data);
+      return {success:true,userData:studentsData};
+
+  } catch (error) {
+      if (error instanceof Error) {
+          throw new Error(`Error editing profile: ${error.message}`);  
+      }
+      throw error;
+  }
+}
+
+
+async totalUsers(): Promise<any> {
+  try {
+      console.log( "data in my course add ");
+      
+      const studentsData = await this.userRepo.totalUsers();
+      return studentsData;
+
+  } catch (error) {
+      if (error instanceof Error) {
+          throw new Error(`Error editing profile: ${error.message}`);  
+      }
+      throw error;
+  }
+}
 
 
  }

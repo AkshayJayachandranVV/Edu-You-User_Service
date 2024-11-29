@@ -1,6 +1,21 @@
 import mongoose, {Document} from "mongoose";
 
 
+export interface MyCourseRequest {
+    userId: string;
+  }
+
+export interface MyCoursesResponse {
+    success: boolean;
+    courses: MyCourse[];
+  }
+  
+  interface MyCourse {
+    courseId: string;
+  }
+  
+  
+
 export interface IUser {
     username: string;
     email: string;

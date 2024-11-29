@@ -27,13 +27,15 @@ server.addService(userProto.UserService.service, {
     register: userController.registerUser.bind(userController),
     verifyOtp: userController.verifyOtp.bind(userController),
     googleLogin: userController.googleLoginUser.bind(userController),
+    myCourse: userController.userMyCourse.bind(userController),
 });
 
 const startGrpcServer = () => {
-    const grpcPort = config.grpcPort || 4001; // Assign port 4001 or from config
+    const grpcPort = config.grpcPort; 
     server.bindAsync(`0.0.0.0:${grpcPort}`, grpc.ServerCredentials.createInsecure(), (err, bindPort) => {
         if (err) {
             console.error("Failed to start gRPC server:", err);
+            console.log('1234')
         } else {
             console.log(`gRPC server running on port: ${grpcPort}`);
         }

@@ -172,7 +172,8 @@ async editProfile(user: userData) : Promise<IUser| null> {
 
         const {username,email,phone,about, image} = user;
       
-        let updateProfile = await User.updateOne({ email : email },{$set:{username,phone,about,profile_picture:image}}).exec();
+        let updateProfile = await User.updateOne({ email: email }, { $set: { username, phone, about, profile_picture: image } }).exec();
+
 
         console.log(updateProfile)
 
@@ -193,16 +194,24 @@ async editProfile(user: userData) : Promise<IUser| null> {
 
 
 
-async totalStudents() : Promise<IUser[]| null> {
+async totalStudents(data:any) : Promise<any> {
     try {
-        console.log(' total students  in userrepository reached')
-
+        console.log(' total students  in userrepository reached',data)
+        const {skip,limit} = data
       
-        let studentsData = await User.find({}).exec();
+        let studentsData = await User.find({}).skip(skip).limit(limit).exec();
+
+        const totalUsers = await User.countDocuments();
 
         console.log(studentsData)
 
-        return studentsData
+        // return studentsData
+        return {
+          users:studentsData, // Paginated orders
+          totalUsers, // Total number of orders (for pagination metadata)
+          success: true,
+          message: "Users fetched successfully",
+        };
         
     } catch (error) {
         console.log("error in save userRepo")
@@ -253,10 +262,10 @@ async addMyCourse(data:any): Promise<IUser | null> {
 
         const { userId, courseId } = data;
 
-        // Create the course object to be added, with courseId and current date
+        
         const courseToAdd = {
             courseId,
-            date: new Date(), // Automatically sets the current date
+            date: new Date(), 
         };
 
         // Use updateOne with the $push operator to add the course to the myCourse array
@@ -365,33 +374,32 @@ async chatUsers(data: any) {
 }
 
 
-async userMyCourse(userId: string): Promise<{ courseId: string }[] | null> {
-    try {
-        console.log('Fetching courses for user:', userId);
+async userMyCourse(userId: string): Promise<{ courseId: string }[]> {
+  try {
+      console.log('Fetching courses for user:', userId);
 
-        // Fetch user with myCourse details
-        const userData = await User.findById(userId).select('myCourse.courseId').exec();
+      // Fetch user data
+      const userData = await User.findById(userId).select('myCourse.courseId').exec();
 
-        // Check if user exists
-        if (!userData) {
-            console.log('User not found');
-            return null;
-        }
+      // Handle user not found or no courses
+      if (!userData || !Array.isArray(userData.myCourse)) {
+          console.log('User not found or no courses available');
+          return []; // Return empty array for consistent handling
+      }
 
-        // Extract courseId from myCourse and create an array of objects
-        const courseIds = userData.myCourse.map(course => ({
-            courseId: course.courseId.toString() // Create object with courseId as key
-        }));
+      // Extract courseId from myCourse
+      const courseIds = userData.myCourse.map(course => ({
+          courseId: course.courseId.toString(),
+      }));
 
-        console.log('Fetched courseIds:', courseIds);
-
-        // Return the array of objects with courseId
-        return courseIds; // This will return an array of objects with courseId
-    } catch (error) {
-        console.log("Error in userMyCourse:", error);
-        throw new Error(`Error fetching courses for user ${userId}`);
-    }
+      console.log('Fetched courseIds:', courseIds);
+      return courseIds;
+  } catch (error) {
+      console.error('Error in userMyCourse:', error);
+      throw new Error('Error fetching user courses');
+  }
 }
+
 
 
 
@@ -440,6 +448,52 @@ async  chatSenderData(senderId: string): Promise<IUser | null> {
   }
 
 
+
+  async  payoutUsers(data: any): Promise<any> {
+    try {
+      // Extract userIds from the input data
+
+      console.log("testing testing")
+
+      const addedData = await Promise.all(data.map(async (item:any) => {
+        // Fetch tutor document from the database using tutorId
+        const user = await User.findOne({ _id: item.userId });
+
+        // Check if tutor exists and add tutorName to the item, or set to "Unknown" if not found
+        if (user) {
+            item.userName = user.username;
+        } else {
+            item.userName = "Unknown";
+        }
+
+        // Return the updated item with tutorName
+        return item;
+    }));
+
+    return addedData;
+      
+    } catch (error) {
+      console.log('Error in retrieving users in fetchGroupMembers');
+      const err = error as Error;
+      throw new Error(`Error fetching group members: ${err.message}`);
+    }
+  }
+
+
+  
+  async totalUsers(): Promise<any> {
+    try {
+      const activeUsersCount = await User.countDocuments({ isBlocked: false });
+  
+      console.log("Total number of active users:", activeUsersCount);
+      return  activeUsersCount || 0 ;
+    } catch (error) {
+      console.log('Error in retrieving users in totalUsers');
+      const err = error as Error;
+      throw new Error(`Error fetching total users: ${err.message}`);
+    }
+  }
+  
 
     
 }
