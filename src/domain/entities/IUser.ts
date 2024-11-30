@@ -1,6 +1,21 @@
 import mongoose, {Document} from "mongoose";
 
 
+export interface RegisterUserRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterUserResponse {
+  message: string;
+  success: boolean;
+  forgotPass: boolean;
+  userData?: any; 
+  tempId?: string; 
+}
+
+
 export interface MyCourseRequest {
     userId: string;
   }

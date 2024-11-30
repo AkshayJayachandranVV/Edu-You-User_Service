@@ -1,5 +1,5 @@
 import {UserService} from "../../application/use-case/user"
-import { senderId,tempId, Email,UserIdList,MyCourseRequest,MyCoursesResponse} from "../../domain/entities/IUser";
+import { senderId,tempId, Email,UserIdList,RegisterUserRequest,RegisterUserResponse,MyCoursesResponse} from "../../domain/entities/IUser";
 import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
 import bcrypt from 'bcrypt';
 import * as grpc from '@grpc/grpc-js';
@@ -13,42 +13,47 @@ class UserController {
         this.userService = new UserService()
     }
 
-    async registerUser(call: any, callback: any): Promise<void> {
+    async registerUser(
+        call: grpc.ServerUnaryCall<RegisterUserRequest, RegisterUserResponse>,
+        callback: grpc.sendUnaryData<RegisterUserResponse>
+      ): Promise<void> {
         try {
-            console.log("Reached registerUser method", call.request);
-    
-            // Extract user data from gRPC request
-            const userData = call.request;
-    
-            // Call the userService's registerUser method, passing the user data
-            const result = await this.userService.registerUser(userData);
-    
-            console.log("Result of register", result);
-    
-            // Check the result and call the callback with appropriate response
-            if (result && result.success) {
-                return callback(null, {
-                    success: true,
-                    message: result.message || 'Registration successful. Verify the OTP to complete registration.',
-                    userData: result.userData,
-                    tempId: result.tempId, // Assuming tempId is returned for OTP verification
-                });
-            } else {
-                return callback(null, {
-                    success: false,
-                    message: result.message || 'Registration failed. Please try again.',
-                });
-            }
-        } catch (error) {
-            console.log("Error in registerUser method:", error);
-    
-            // Return an error in case something goes wrong
-            return callback({
-                code: grpc.status.INTERNAL,
-                message: error instanceof Error ? error.message : 'Unknown error occurred',
+          console.log("Reached registerUser method", call.request);
+      
+          // Extract user data from gRPC request
+          const userData = call.request;
+      
+          // Call the userService's registerUser method, passing the user data
+          const result = await this.userService.registerUser(userData);
+      
+          console.log("Result of register", result);
+      
+          // Check the result and call the callback with appropriate response
+          if (result && result.success) {
+            return callback(null, {
+              message: result.message || 'Registration successful. Verify the OTP to complete registration.',
+              success: true,
+              forgotPass: false, // Adjust based on the actual service logic
+              userData: result.userData,
+              tempId: result.tempId, // Assuming tempId is returned for OTP verification
             });
+          } else {
+            return callback(null, {
+              message: result.message || 'Registration failed. Please try again.',
+              success: false,
+              forgotPass: false,
+            });
+          }
+        } catch (error) {
+          console.log("Error in registerUser method:", error);
+      
+          // Return an error in case something goes wrong
+          return callback({
+            code: grpc.status.INTERNAL,
+            message: error instanceof Error ? error.message : 'Unknown error occurred',
+          });
         }
-    }
+      }
     
     
 

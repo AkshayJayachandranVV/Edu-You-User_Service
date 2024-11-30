@@ -1,5 +1,5 @@
 import { UserRepository } from "../../domain/repositories/UserRepository";
-import { IUser, UserIdList, tempId,userMinData,userData,profile, Email, senderId } from "../../domain/entities/IUser";
+import { IUser, UserIdList, tempId,userMinData,RegisterUserRequest,profile, Email, senderId } from "../../domain/entities/IUser";
 import { generateOtp } from "../../utils/generateOtp";
 import { sendOtpEmail } from "../../utils/sendEmail";
 import { TemporaryUser } from "../../model/TempUser";
@@ -21,7 +21,7 @@ export class UserService {
   }
 
 
-  async registerUser(userData: IUser): Promise<any> {
+  async registerUser(userData:RegisterUserRequest ): Promise<any> {
     try {
         console.log("Reached user.ts in use case");
 
