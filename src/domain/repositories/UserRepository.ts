@@ -1,6 +1,6 @@
 import {IUserRepository} from './IUserRepository';
-import {IUser,UserIdList, userData} from '../entities/IUser'
-import {ITemporaryUser,TemporaryUserData} from '../entities/IUser'
+import {IUser,UserIdList, userData,UserCourse} from '../entities/IUser'
+import {ITemporaryUser,PaginationData,UserId,ChatUsersData,PayoutUserInput,PayoutUsersResponse,PayoutUserOutput} from '../entities/IUser'
 import mongoose from "mongoose";
 import bcrypt from 'bcryptjs';
 import { User,IUserDocument } from "../../model/User";
@@ -194,7 +194,7 @@ async editProfile(user: userData) : Promise<IUser| null> {
 
 
 
-async totalStudents(data:any) : Promise<any> {
+async totalStudents(data:PaginationData) : Promise<any> {
     try {
         console.log(' total students  in userrepository reached',data)
         const {skip,limit} = data
@@ -256,7 +256,7 @@ async isBlocked(email: string): Promise<{ success: boolean; message: string }> {
 }
 
 
-async addMyCourse(data:any): Promise<IUser | null> {
+async addMyCourse(data:UserCourse): Promise<IUser | null> {
     try {
         console.log('Total students in user repository reached');
 
@@ -285,7 +285,7 @@ async addMyCourse(data:any): Promise<IUser | null> {
 }
 
 
-async userMyCourses(data:any) : Promise<mongoose.Schema.Types.ObjectId[] | null> {
+async userMyCourses(data:UserId) : Promise<mongoose.Schema.Types.ObjectId[] | null> {
     try {
         console.log(' my courses in userrepository reached')
 
@@ -311,7 +311,7 @@ async userMyCourses(data:any) : Promise<mongoose.Schema.Types.ObjectId[] | null>
 }
 
 
-async chatUsers(data: any) {
+async chatUsers(data: ChatUsersData) {
     try {
       const messagesWithUserInfo = await Promise.all(
         data.messages.map(async (message: any) => {
@@ -449,39 +449,34 @@ async  chatSenderData(senderId: string): Promise<IUser | null> {
 
 
 
-  async  payoutUsers(data: any): Promise<any> {
+  async payoutUsers(data: PayoutUserInput[]): Promise<PayoutUsersResponse> {
     try {
-      // Extract userIds from the input data
-
-      console.log("testing testing")
-
-      const addedData = await Promise.all(data.map(async (item:any) => {
-        // Fetch tutor document from the database using tutorId
-        const user = await User.findOne({ _id: item.userId });
-
-        // Check if tutor exists and add tutorName to the item, or set to "Unknown" if not found
-        if (user) {
-            item.userName = user.username;
-        } else {
-            item.userName = "Unknown";
-        }
-
-        // Return the updated item with tutorName
-        return item;
-    }));
-
-    return addedData;
-      
+      console.log("Testing payoutUsers function");
+  
+      const addedData = await Promise.all(
+        data.map(async (item: PayoutUserInput): Promise<PayoutUserOutput> => {
+          // Fetch user document from the database using userId
+          const user = await User.findOne({ _id: item.userId });
+  
+          // Attach userName to the item or set to "Unknown" if user not found
+          return {
+            ...item,
+            userName: user ? user.username : "Unknown",
+          };
+        })
+      );
+  
+      return addedData; // Return the enriched data
     } catch (error) {
-      console.log('Error in retrieving users in fetchGroupMembers');
+      console.log("Error in retrieving users in payoutUsers");
       const err = error as Error;
-      throw new Error(`Error fetching group members: ${err.message}`);
+      throw new Error(`Error fetching users: ${err.message}`);
     }
   }
-
+  
 
   
-  async totalUsers(): Promise<any> {
+  async totalUsers(): Promise<number> {
     try {
       const activeUsersCount = await User.countDocuments({ isBlocked: false });
   

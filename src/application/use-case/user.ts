@@ -1,5 +1,7 @@
 import { UserRepository } from "../../domain/repositories/UserRepository";
-import { IUser, UserIdList, tempId,userMinData,RegisterUserRequest,profile, Email, senderId } from "../../domain/entities/IUser";
+import { IUser, UserIdList, tempId,userMinData,RegisterUserRequest,profile, Email, senderId ,PayoutUserInput,VerifyOtpInput,
+  VerifyOtpResponse,GoogleLoginUserRequest,ResetPasswordInput,ReturnMessage,GoogleLoginUserResponse,PaginationData,UserCourse,UserId,ChatUsersData
+} from "../../domain/entities/IUser";
 import { generateOtp } from "../../utils/generateOtp";
 import { sendOtpEmail } from "../../utils/sendEmail";
 import { TemporaryUser } from "../../model/TempUser";
@@ -70,50 +72,50 @@ export class UserService {
 }
 
 
-  async verifyOtp(otpObj: any): Promise<any> {
-    try {
-      const { otp, id } = otpObj;
-      console.log(otp, id);
-      console.log("Verifying OTP", otp);
-      const temporaryUser = await this.userRepo.findTempUser(id);
+async verifyOtp(otpObj: VerifyOtpInput): Promise<VerifyOtpResponse> {
+  try {
+    const { otp, id } = otpObj;
+    console.log(otp, id);
+    console.log("Verifying OTP", otp);
+    const temporaryUser = await this.userRepo.findTempUser(id);
 
-      console.log(temporaryUser, " checvking its validity");
+    console.log(temporaryUser, "checking its validity");
 
-      if (!temporaryUser) {
-        return { success: false, message: "Invalid OTP" };
-      }
-
-      if(otp !== temporaryUser.otp){
-        console.log("enetered to invalid otp")
-        return {
-            success: false,
-            message: "Incorrect Otp",
-          };
-      }
-
-      const userData = temporaryUser.userData;
-
-      if (!userData) {
-        return {
-          success: false,
-          message: "User data is missing in the temporary record",
-        };
-      }
-
-      const savedUser = await this.userRepo.save(userData);
-
-      return {
-        message: "User data saved successfully",
-        success: true,
-        user_data: savedUser,
-      };
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Error saving user:${error.message}`);
-      }
-      throw error;
+    if (!temporaryUser) {
+      return { success: false, message: "Invalid OTP" };
     }
+
+    if (otp !== temporaryUser.otp) {
+      console.log("Entered an invalid OTP");
+      return { success: false, message: "Incorrect OTP" };
+    }
+
+    const userData = temporaryUser.userData;
+
+    if (!userData) {
+      return { success: false, message: "User data is missing in the temporary record" };
+    }
+
+    if (!userData.about) {
+      userData.about = '';  
+    }
+
+    const savedUser = await this.userRepo.save(userData);
+
+    return {
+      message: "User data saved successfully",
+      success: true,
+      user_data: savedUser,
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error saving user: ${error.message}`);
+    }
+    throw error;
   }
+}
+
+
 
   
 //   async loginUser(data: any): Promise<{ success: boolean; message: string; userData?: any; role?: string }> {
@@ -247,7 +249,7 @@ async loginUser({ email, password }: { email: string, password: string }, callba
 
 
 
-async googleLoginUser(data: any): Promise<any> {
+async googleLoginUser(data: GoogleLoginUserRequest): Promise<GoogleLoginUserResponse> {
   try {
       const email = data.email;
       const username = data.fullname;
@@ -403,7 +405,7 @@ async googleLoginUser(data: any): Promise<any> {
   }
 
 
-     async forgotOtpVerify(otpObj: any): Promise<any> {
+     async forgotOtpVerify(otpObj: VerifyOtpInput): Promise<ReturnMessage> {
 
         try {
 
@@ -441,7 +443,7 @@ async googleLoginUser(data: any): Promise<any> {
      }
 
 
-    async resetPassword(data: any): Promise<any> {
+    async resetPassword(data: ResetPasswordInput): Promise<ReturnMessage> {
         try {
             const {newPassword,email} = data;
             console.log("eneterd to reset . ",newPassword,email)
@@ -474,41 +476,27 @@ async googleLoginUser(data: any): Promise<any> {
 
 
 
-async editProfile(data: profile): Promise<any> {
+async editProfile(data: profile): Promise<IUser| null> {
     try {
         console.log(data, "data in edit profile");
         let profile_pic_url: string = '';
 
-        // Ensure profile_picture is a file object with a buffer
         if (data.data.profile_picture && typeof data.data.profile_picture !== 'string' && 'buffer' in data.data.profile_picture) {
             const buffer = Buffer.isBuffer(data.data.profile_picture.buffer) 
                 ? data.data.profile_picture.buffer 
                 : Buffer.from(data.data.profile_picture.buffer);
-
-            // Upload the image buffer to S3 and get the key
-            // const key = await uploadFileToS3(buffer, data.image.originalname);
-            // data.image = key;  // Update the image field with the S3 key
-
-            // Fetch the URL of the uploaded image from S3 (with expiry time)
-            // profile_pic_url = await fetchFileFromS3(key, 604800);
         }
 
         console.log(profile_pic_url, 'Profile picture URL after upload');
 
-        // Extract relevant fields from `data.data`
         const { username, email, phone, about,profile_picture} = data.data;
 
         console.log(username, email, phone, about,profile_picture);
-
-        // Update the user profile with the provided data (image is now the S3 key)
         let user = await this.userRepo.editProfile({ username, email, phone, about, image: profile_picture });
 
         console.log("Check value updated or not", user);
 
-        // Update the profile_picture field with the new profile_pic_url before sending to frontend
-        // const updatedUser = { ...user, profile_picture: profile_pic_url };
-
-        return user; // Send updated user data with the profile_picture URL
+        return user;
 
     } catch (error) {
         if (error instanceof Error) {
@@ -520,7 +508,7 @@ async editProfile(data: profile): Promise<any> {
 
 
 
-async totalStudents(data: any): Promise<any> {
+async totalStudents(data: PaginationData): Promise<number> {
   try {
       console.log(data, "data in students list");
       
@@ -536,7 +524,7 @@ async totalStudents(data: any): Promise<any> {
 }
 
 
-async isBlocked(data: Email): Promise<any> {
+async isBlocked(data: Email): Promise<ReturnMessage> {
   try {
       console.log(data, "data in students list");
       const {email} = data
@@ -554,7 +542,7 @@ async isBlocked(data: Email): Promise<any> {
 
 
 
-async addMyCourse(data: any): Promise<any> {
+async addMyCourse(data: UserCourse): Promise<IUser | null> {
   try {
       console.log(data, "data in my course add ");
       
@@ -570,7 +558,7 @@ async addMyCourse(data: any): Promise<any> {
 }
 
 
-async userMyCourses(data: any): Promise<any> {
+async userMyCourses(data: UserId): Promise<mongoose.Schema.Types.ObjectId[] | null> {
   try {
       console.log(data, "data in my course add ");
       
@@ -586,7 +574,7 @@ async userMyCourses(data: any): Promise<any> {
 }
 
 
-async chatUsers(data: any): Promise<any> {
+async chatUsers(data: ChatUsersData): Promise<any> {
   try {
       console.log(data, "data in my course add ");
       
@@ -604,7 +592,7 @@ async chatUsers(data: any): Promise<any> {
 
 
 
-async tutorStudentsData(data: any): Promise<any> {
+async tutorStudentsData(data: string[]): Promise<any> {
   try {
       console.log(data, "data in my course add ");
       
@@ -672,7 +660,7 @@ async fetchGroupMembers(data:UserIdList): Promise<any> {
 }
 
 
-async payoutUsers(data:AnyAaaaRecord): Promise<any> {
+async payoutUsers(data:PayoutUserInput[]): Promise<any> {
   try {
       console.log(data, "data in my course add ");
       
@@ -688,7 +676,7 @@ async payoutUsers(data:AnyAaaaRecord): Promise<any> {
 }
 
 
-async totalUsers(): Promise<any> {
+async totalUsers(): Promise<number> {
   try {
       console.log( "data in my course add ");
       

@@ -1,5 +1,8 @@
 import {UserService} from "../../application/use-case/user"
-import { senderId,tempId, Email,UserIdList,RegisterUserRequest,RegisterUserResponse,MyCoursesResponse} from "../../domain/entities/IUser";
+import { senderId,tempId, Email,UserIdList,RegisterUserRequest,RegisterUserResponse,MyCoursesResponse,VerifyOtpUserRequest,VerifyOtpUserResponse,
+    LoginUserRequest,LoginUserResponse,GoogleLoginUserRequest,GoogleLoginUserResponse,VerifyOtpInput,ResetPasswordInput,PaginationData,profile,UserCourse,UserId,ChatUsersData,
+    PayoutUserInput
+} from "../../domain/entities/IUser";
 import { ServerUnaryCall, sendUnaryData } from '@grpc/grpc-js';
 import bcrypt from 'bcrypt';
 import * as grpc from '@grpc/grpc-js';
@@ -57,7 +60,10 @@ class UserController {
     
     
 
-    async verifyOtp(call: any, callback: any): Promise<void> {
+      async verifyOtp(
+        call: grpc.ServerUnaryCall<VerifyOtpUserRequest, VerifyOtpUserResponse>,
+        callback: grpc.sendUnaryData<VerifyOtpUserResponse>
+      ): Promise<void> {
         try {
             console.log("Received gRPC verifyOtp request", call.request);
     
@@ -113,27 +119,64 @@ class UserController {
     // }
 
 
-    async loginUser(call: any, callback: any): Promise<void> {
+    async loginUser(
+        call: grpc.ServerUnaryCall<LoginUserRequest, LoginUserResponse>,
+        callback: grpc.sendUnaryData<LoginUserResponse>
+      ): Promise<void> {
         try {
-          console.log("reached-------------------------------------------",call.request);
+          console.log("Received gRPC loginUser request:", call.request);
       
           // Extract email and password from gRPC request
           const { email, password } = call.request;
       
-          // Call the userService's loginUser method, passing both email, password, and callback
-          await this.userService.loginUser({ email, password }, callback);
+          // Call the userService's loginUser method, passing both email and password
+          await this.userService.loginUser({ email, password }, (error: Error | null, result: LoginUserResponse | null) => {
+            if (error) {
+              console.error("Error in userService.loginUser:", error);
+      
+              // Return error response if loginUser fails
+              return callback({
+                code: grpc.status.INTERNAL,
+                message: error.message || "Unknown error occurred",
+              });
+            }
+      
+            if (result && result.success) {
+              // Handle successful login
+              return callback(null, {
+                success: result.success,
+                message: result.message,
+                role: result.role,
+                userData: result.userData,
+              });
+            } else {
+              // Handle login failure
+              return callback(null, {
+                success: false,
+                message: result?.message || "Invalid credentials. Please try again.",
+                role: "", // Empty role if login fails
+              });
+            }
+          });
         } catch (error) {
-          console.log(error, "in grpc");
+          console.error("Error in loginUser gRPC method:", error);
       
           // Return an error in case something goes wrong
           return callback({
             code: grpc.status.INTERNAL,
-            message: error instanceof Error ? error.message : 'Unknown error occurred',
+            message: error instanceof Error ? error.message : "Unknown error occurred",
           });
         }
       }
 
-      async googleLoginUser(call: any, callback: any): Promise<void> {
+
+
+     
+
+      async googleLoginUser(
+        call: grpc.ServerUnaryCall<GoogleLoginUserRequest, GoogleLoginUserResponse>,
+        callback: grpc.sendUnaryData<GoogleLoginUserResponse>
+      ): Promise<void> {
         try {
             console.log("Reached googleLoginUser gRPC handler", call.request);
     
@@ -171,7 +214,7 @@ class UserController {
         }
     }
 
-    async forgotPassword(data :any ){
+    async forgotPassword(data :Email ){
         try {
             console.log(data, "resend otp");
             const result = await this.userService.forgotPassword(data.email)
@@ -184,7 +227,7 @@ class UserController {
     }
 
 
-    async forgotOtpVerify(data :Email ){
+    async forgotOtpVerify(data :VerifyOtpInput ){
         try {
             console.log(data,"forgotttt-verify_otp")
 
@@ -197,7 +240,7 @@ class UserController {
     }
 
 
-    async resetPassword(data :Email ){
+    async resetPassword(data :ResetPasswordInput ){
         try {
             console.log(data,"forgotttt-verify_otp")
 
@@ -214,7 +257,7 @@ class UserController {
     
 
 
-    async editProfile(data: any){
+    async editProfile(data: profile){
         try{
             console.log(data, "user edit profile");
 
@@ -228,7 +271,7 @@ class UserController {
     }
 
     
-    async totalStudents(data: any){
+    async totalStudents(data: PaginationData){
         try{
             console.log(data, "user edit profile");
 
@@ -242,7 +285,7 @@ class UserController {
     }
    
 
-    async isBlocked(data: any){
+    async isBlocked(data: Email){
         try{
             console.log(data, "admin isBLocked");
 
@@ -256,7 +299,7 @@ class UserController {
     }
 
 
-    async addMyCourse(data: any){
+    async addMyCourse(data: UserCourse){
         try{
             console.log(data, "add course my course");
 
@@ -269,7 +312,7 @@ class UserController {
 
     }
 
-    async userMyCourses(data: any){
+    async userMyCourses(data: UserId){
         try{
             console.log(data, "add course my course");
 
@@ -283,7 +326,7 @@ class UserController {
     }
 
 
-    async chatUsers(data: any){
+    async chatUsers(data: ChatUsersData){
         try{
             console.log(data, "add course my course");
 
@@ -297,7 +340,7 @@ class UserController {
     }
 
 
-    async tutorStudentsData(data: any){
+    async tutorStudentsData(data: string[]){
         try{
             console.log(data, "add course my course");
 
@@ -312,7 +355,7 @@ class UserController {
 
 
 
-    async userMyCourse(data:any ): Promise<any> {
+    async userMyCourse(data:UserId): Promise<any> {
         try {
           const { userId } = data;
           console.log("Received userId:", userId);
@@ -365,7 +408,7 @@ class UserController {
     }
 
 
-    async payoutUsers(data: any){
+    async payoutUsers(data: PayoutUserInput[]){
         try{
             console.log(data, "add course my course");
 

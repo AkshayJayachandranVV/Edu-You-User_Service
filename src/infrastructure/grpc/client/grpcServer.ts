@@ -27,7 +27,7 @@ server.addService(userProto.UserService.service, {
     register: userController.registerUser.bind(userController),
     verifyOtp: userController.verifyOtp.bind(userController),
     googleLogin: userController.googleLoginUser.bind(userController),
-    myCourse: userController.userMyCourse.bind(userController),
+    // myCourse: userController.userMyCourse.bind(userController),
 });
 
 const startGrpcServer = () => {
