@@ -252,4 +252,7 @@ export interface TutorStudentReturn {
   students:IUser[]
 }
 
-
+export interface TutorWithDynamicProperties {
+  tutorId: string;        
+  [key: string]: any;     
+}
