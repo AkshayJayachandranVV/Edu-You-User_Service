@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 const logoPath = path.resolve(__dirname, '../assets/emailSend.jpeg');
+const logoBuffer = fs.readFileSync(logoPath);
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -20,32 +21,63 @@ export const sendOtpEmail = async (to: string, otp: string): Promise<void> => {
         subject: "Your OTP Code",
         text: `Your OTP code is: ${otp}`,
         html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border: 1px solid #dddddd;">
-            <div style="text-align: center; padding-bottom: 20px;">
-            <h1> EduYou </h1>
-                <img src="cid:logo" alt="Your Company Logo" style="width: 300px; height: auto;">
-            </div>
-            <div style="padding: 20px; background-color: #f7f7f7; border-radius: 5px;">
-                <h2 style="color: #333333; margin-bottom: 10px;">Your OTP Code</h2>
-                <p style="font-size: 16px; color: #555555;">Hello,</p>
-                <p style="font-size: 16px; color: #555555;">We received a request to access your account. Use the OTP below to complete the verification process:</p>
-                <div style="margin: 20px 0; padding: 15px; background-color: #0073e6; color: #ffffff; font-size: 24px; font-weight: bold; text-align: center; border-radius: 5px;">
-                    ${otp}
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Your OTP Code</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f9f9f9;">
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <!-- Header with Logo -->
+                <div style="background-color: #f7f7f7; padding: 20px; text-align: center;">
+                    <h1 style="font-size: 28px; color: #0073e6;">EduYou</h1>
+                    <img src="cid:logo" alt="EduYou Logo" style="width: 200px; height: auto;">
                 </div>
-                <p style="font-size: 16px; color: #555555;">If you did not request this code, you can safely ignore this email.</p>
-                <p style="font-size: 16px; color: #555555;">Thank you,</p>
-                <p style="font-size: 16px; color: #555555;">Your Company Team</p>
+                
+                <!-- Content Section -->
+                <div style="padding: 40px 20px; text-align: center;">
+                    <h1 style="color: #333; margin: 0 0 20px; font-size: 28px;">Your OTP Code</h1>
+                    <p style="font-size: 16px; color: #555; margin: 0 0 10px;">Dear user,</p>
+                    
+                    <!-- OTP Display -->
+                    <div style="margin: 30px 0; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+                        <p style="font-size: 16px; color: #555; margin: 0 0 10px;">Your OTP code is:</p>
+                        <div style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 5px; margin: 10px 0;">
+                            ${otp}
+                        </div>
+                        <p style="font-size: 14px; color: #666; margin: 10px 0 0;">This code will expire in 10 minutes</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; color: #555; margin: 20px 0 10px;">Please use this code to complete your verification process.</p>
+                    <p style="font-size: 16px; color: #555; margin: 0 0 5px;">Thank you,</p>
+                    <p style="font-size: 16px; color: #555; margin: 0;">EduYou Team</p>
+                </div>
+                
+                <!-- Footer Section -->
+                <div style="background-color: #f7f7f7; padding: 20px; text-align: center;">
+                    <p style="font-size: 14px; color: #999; margin: 0 0 10px;">
+                        If you didn't request this code, please ignore this email.
+                    </p>
+                    <p style="font-size: 14px; color: #999; margin: 0 0 5px;">
+                        &copy; ${new Date().getFullYear()} EduYou. All rights reserved.
+                    </p>
+                    <p style="font-size: 14px; color: #999; margin: 0;">
+                        <a href="mailto:darsandinesh100@gmail.com" 
+                           style="color: #0073e6; text-decoration: none;">
+                           akshayjayachandranvv@gmail.com
+                        </a>
+                    </p>
+                </div>
             </div>
-            <div style="text-align: center; padding-top: 20px; color: #999999; font-size: 14px;">
-                <p>&copy; 2024 Your Company. All rights reserved.</p>
-                <p><a href="mailto:darsandinesh100@gmail.com" style="color: #0073e6; text-decoration: none;">darsandinesh100@gmail.com</a></p>
-            </div>
-        </div>`,
+        </body>
+        </html>`,
         attachments: [
             {
                 filename: 'emailSend.jpeg',
-                path: logoPath,
-                cid: 'logo' // same cid as in the html img src
+                content: logoBuffer,
+                cid: 'logo' // Content ID for inline logo image
             }
         ]
     };
